@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:tutorial_samplea_application/screen/photo_view_screen.dart';
 import 'package:tutorial_samplea_application/screen/sign_in_screen.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
 
 class PhotoListScreen extends StatefulWidget {
   @override
@@ -55,11 +58,11 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       ),
 
       // Photo Addtion Button
+      // 画像追加用ボタン
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigator.pushNamed(context, '/photo_add_screen');
-        },
-        child: const Icon(Icons.add),
+        // 画像追加用ボタンをタップしたときの処理
+        onPressed: () => _onAddPhoto(),
+        child: Icon(Icons.add),
       ),
 
       // 画面下部のボタン部分
@@ -130,6 +133,30 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         builder: (_) => SignInScreen(),
       ),
     );
+  }
+
+  Future<void> _onAddPhoto() async {
+    // 画像ファイルを選択
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+
+    // 画像ファイルが選択された場合
+    if (result != null) {
+      // ログイン中のユーザー情報を取得
+      final User user = FirebaseAuth.instance.currentUser!;
+
+      // フォルダとファイル名を指定し画像ファイルをアップロード
+      final int timestamp = DateTime.now().microsecondsSinceEpoch;
+      final File file = File(result.files.single.path!);
+      final String name = file.path.split('/').last;
+      final String path = '${timestamp}_$name';
+      final TaskSnapshot task = await FirebaseStorage.instance
+          .ref()
+          .child('users/${user.uid}/photos') // フォルダ名
+          .child(path) // ファイル名
+          .putFile(file); // 画像ファイル
+    }
   }
 }
 
