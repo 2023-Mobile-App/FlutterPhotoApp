@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tutorial_samplea_application/screen/photo_view_screen.dart';
+import 'package:tutorial_samplea_application/screen/sign_in_screen.dart';
 
 class PhotoListScreen extends StatefulWidget {
   @override
@@ -26,7 +29,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         actions: [
           // log out Button
           IconButton(
-            onPressed: () {},
+            onPressed: () => _OnSignOut(),
             icon: const Icon(Icons.exit_to_app),
           )
         ],
@@ -38,10 +41,16 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         // PageViewで表示するWidget
         children: [
           // すべての写真を表示する画面
-          PhotoGridView(),
+          PhotoGridView(
+            // コールバックを設定して、タップした画像の URL を受け取る
+            onTap: (String imageURL) => _onTapPhoto(imageURL),
+          ),
 
           // お気に入りに登録した画像を表示する画面
-          PhotoGridView(),
+          PhotoGridView(
+            // コールバックを設定して、タップした画像の URL を受け取る
+            onTap: (String imageURL) => _onTapPhoto(imageURL),
+          ),
         ],
       ),
 
@@ -77,6 +86,12 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     );
   }
 
+  void _onTapPhoto(String imageURL) {
+    // 画像詳細ページに遷移する
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PhotoViewScreen(imageURL: imageURL)));
+  }
+
   void _onPageChanged(int index) {
     //PageView で表示されているWidgetの番号を持っておく
     setState(() {
@@ -103,9 +118,30 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       _currentIndex = index;
     });
   }
+
+  Future<void> _OnSignOut() async {
+    //log out
+    await FirebaseAuth.instance.signOut();
+
+    //ログイン画面に戻す
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => SignInScreen(),
+      ),
+    );
+  }
 }
 
 class PhotoGridView extends StatelessWidget {
+  const PhotoGridView({
+    Key? key,
+    required this.onTap,
+  }) : super(key: key);
+
+  // コールバックからタップされた画像のURLを受け渡す
+  final void Function(String imageURL) onTap;
+
   @override
   Widget build(BuildContext context) {
     // ダミー画像一覧
@@ -136,7 +172,7 @@ class PhotoGridView extends StatelessWidget {
               width: double.infinity,
               height: double.infinity,
               child: InkWell(
-                onTap: () {},
+                onTap: () => onTap(imageURL),
                 // URLを指定して画像を表示
                 child: Image.network(
                   imageURL,
