@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "932828636770",
+    "project_id": "tutorial-samplea-application",
+    "storage_bucket": "tutorial-samplea-application.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932828636770:android:06903bb3a138328ef9133b",
+        "android_client_info": {
+          "package_name": "com.example.tutorial_samplea_application"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "932828636770-1ou8grm50n8k1a0rf904to0ufg0at8it.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAK01_x70RAzc_W5V7O0lxaQIwFpWv8DA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "932828636770-1ou8grm50n8k1a0rf904to0ufg0at8it.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "932828636770-sgna1mee4tl173rs1k3hr272n15na9a7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.tutorialSampleaApplication"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
