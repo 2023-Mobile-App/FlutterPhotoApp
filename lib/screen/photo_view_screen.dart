@@ -5,10 +5,12 @@ class PhotoViewScreen extends StatefulWidget {
     Key? key,
     // required を付けると必須パラメータという意味になる
     required this.imageURL,
+    required this.imageList,
   }) : super(key: key);
 
   // 最初に表示する画像のURLを受け取る
   final String imageURL;
+  final List<String> imageList;
 
   @override
   _PhotoViewScreenState createState() => _PhotoViewScreenState();
@@ -31,7 +33,8 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
   void initState() {
     super.initState();
 
-    final int initialPage = imageList.indexOf(widget.imageURL);
+    // 受け取った画像一覧から、ページ番号を特定
+    final int initialPage = widget.imageList.indexOf(widget.imageURL);
 
     _controller = PageController(
       initialPage: initialPage,
