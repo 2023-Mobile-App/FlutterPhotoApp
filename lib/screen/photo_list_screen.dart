@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:tutorial_samplea_application/domain/photo.dart';
 import 'package:tutorial_samplea_application/repository/photo_repository.dart';
 import 'package:tutorial_samplea_application/screen/photo_view_screen.dart';
+import 'package:tutorial_samplea_application/screen/providers.dart';
 import 'package:tutorial_samplea_application/screen/sign_in_screen.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PhotoListScreen extends StatefulWidget {
   @override
@@ -24,7 +26,10 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     // PageViewで表示されているWidgetの番号を持っておく
     _currentIndex = 0;
     // PageViewの表示を切り替えるのに使う
-    _controller = PageController(initialPage: _currentIndex);
+    _controller = PageController(
+      // Riverpodを使いデータを受け取る
+      initialPage: context.read(photoListIndexProvider).state,
+    );
   }
 
   @override
@@ -43,36 +48,57 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           )
         ],
       ),
-      body: StreamBuilder<List<Photo>>(
-        // リポジトリ経由でデータを取得する
-        stream: PhotoRepository(user).getPhotoList(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData == false) {
-            return Center(
-              child: CircularProgressIndicator(),
+      body: PageView(
+        controller: _controller,
+        onPageChanged: (int index) => _onPageChanged(index),
+        children: [
+          // 「全ての画像」を表示する部分
+          Consumer(builder: (context, watch, child) {
+            // 画像データ一覧を受け取る
+            final asyncPhotoList = watch(photoListProvider);
+            return asyncPhotoList.when(
+              data: (List<Photo> photoList) {
+                return PhotoGridView(
+                  photoList: photoList,
+                  onTap: (photo) => _onTapPhoto(photo, photoList),
+                );
+              },
+              loading: () {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+              error: (e, stackTrace) {
+                return Center(
+                  child: Text(e.toString()),
+                );
+              },
             );
-          }
-
-          // URL一覧ではなくモデル一覧が取得できる
-          final List<Photo> photoList = snapshot.data!;
-          return PageView(
-            controller: _controller,
-            onPageChanged: (int index) => _onPageChanged(index),
-            children: [
-              //「全ての画像」を表示する部分
-              PhotoGridView(
-                // 処理を行う際はモデルを受け渡す
-                photoList: photoList,
-                onTap: (photo) => _onTapPhoto(photo, photoList),
-              ),
-              //「お気に入り登録した画像」を表示する部分
-              PhotoGridView(
-                photoList: photoList,
-                onTap: (photo) => _onTapPhoto(photo, photoList),
-              ),
-            ],
-          );
-        },
+          }),
+          //「お気に入り登録した画像」を表示する部分
+          Consumer(builder: (context, watch, child) {
+            // 画像データ一覧を受け取る
+            final asyncPhotoList = watch(photoListProvider);
+            return asyncPhotoList.when(
+              data: (List<Photo> photoList) {
+                return PhotoGridView(
+                  photoList: photoList,
+                  onTap: (photo) => _onTapPhoto(photo, photoList),
+                );
+              },
+              loading: () {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+              error: (e, stackTrace) {
+                return Center(
+                  child: Text(e.toString()),
+                );
+              },
+            );
+          }),
+        ],
       ),
 
       // Photo Addtion Button
@@ -84,66 +110,66 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       ),
 
       // 画面下部のボタン部分
-      bottomNavigationBar: BottomNavigationBar(
-        // BottomNavigationBarItemがタップされたときの処理
-        //   0: フォト
-        //   1: お気に入り
-        onTap: (int index) => _onTapBottomNavigationItem(index),
-        // 現在表示されているBottomNavigationBarItemの番号
-        //   0: フォト
-        //   1: お気に入り
-        currentIndex: _currentIndex,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.photo),
-            label: 'Photo',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.favorite),
-            label: 'Favorite',
-          ),
-        ],
+      bottomNavigationBar: Consumer(
+        builder: (context, watch, child) {
+          // 現在のページを受け取る
+          final photoIndex = watch(photoListIndexProvider).state;
+
+          return BottomNavigationBar(
+            // BottomNavigationBarItemがタップされたときの処理
+            //   0: フォト
+            //   1: お気に入り
+            onTap: (int index) => _onTapBottomNavigationItem(index),
+            // 現在表示されているBottomNavigationBarItemの番号
+            //   0: フォト
+            //   1: お気に入り
+            currentIndex: _currentIndex,
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.photo),
+                label: 'Photo',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.favorite),
+                label: 'Favorite',
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   void _onTapPhoto(Photo photo, List<Photo> photoList) {
+    final initialIndex = photoList.indexOf(photo);
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        // 処理を行う際はモデルを受け渡す
-        builder: (_) => PhotoViewScreen(
-          photo: photo,
-          photoList: photoList,
+        // ProviderScopeを使いScopedProviderの値を上書きできる
+        // ここでは、最初に表示する画像の番号を指定
+        builder: (_) => ProviderScope(
+          overrides: [
+            photoViewInitialIndexProvider.overrideWithValue(initialIndex)
+          ],
+          child: PhotoViewScreen(),
         ),
       ),
     );
   }
 
   void _onPageChanged(int index) {
-    //PageView で表示されているWidgetの番号を持っておく
-    setState(() {
-      _currentIndex = index;
-    });
+    // ページの値を更新する
+    context.read(photoListIndexProvider).state = index;
   }
 
   void _onTapBottomNavigationItem(int index) {
-    // PageViewで表示するWidgetを切り替える
     _controller.animateToPage(
-      // 表示するWidgetの番号
-      //   0: 全ての画像
-      //   1: お気に入り登録した画像
       index,
-      // 表示を切り替える時にかかる時間（300ミリ秒）
       duration: Duration(milliseconds: 300),
-      // アニメーションの動き方
-      //   この値を変えることで、アニメーションの動きを変えることができる
-      //   https://api.flutter.dev/flutter/animation/Curves-class.html
       curve: Curves.easeIn,
     );
-    // PageViewで表示されているWidgetの番号を更新
-    setState(() {
-      _currentIndex = index;
-    });
+    // ページの値を更新する
+    context.read(photoListIndexProvider).state = index;
   }
 
   Future<void> _OnSignOut() async {

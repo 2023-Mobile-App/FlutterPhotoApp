@@ -43,6 +43,16 @@ class PhotoRepository {
         .set(_photoToMap(photo));
   }
 
+  Future<void> deletePhoto(Photo photo) async {
+    // Cloud Firestoreのデータを削除
+    await FirebaseFirestore.instance
+        .collection('users/${user.uid}/photos')
+        .doc(photo.id)
+        .delete();
+    // Storageの画像ファイルを削除
+    await FirebaseStorage.instance.ref().child(photo.imagePath).delete();
+  }
+
   List<Photo> _queryToPhotoList(QuerySnapshot query) {
     return query.docs.map((doc) {
       return Photo(

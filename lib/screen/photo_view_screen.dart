@@ -1,18 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_samplea_application/domain/photo.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tutorial_samplea_application/screen/providers.dart';
 
 class PhotoViewScreen extends StatefulWidget {
-  const PhotoViewScreen({
-    Key? key,
-    // required を付けると必須パラメータという意味になる
-    required this.photo,
-    required this.photoList,
-  }) : super(key: key);
-
-  // StringではなくPhotoで受け取る
-  final Photo photo;
-  final List<Photo> photoList;
-
   @override
   _PhotoViewScreenState createState() => _PhotoViewScreenState();
 }
@@ -20,25 +11,13 @@ class PhotoViewScreen extends StatefulWidget {
 class _PhotoViewScreenState extends State<PhotoViewScreen> {
   late PageController _controller;
 
-  // ダミー画像一覧
-  final List<String> imageList = [
-    'https://placehold.jp/400x300.png?text=0',
-    'https://placehold.jp/400x300.png?text=1',
-    'https://placehold.jp/400x300.png?text=2',
-    'https://placehold.jp/400x300.png?text=3',
-    'https://placehold.jp/400x300.png?text=4',
-    'https://placehold.jp/400x300.png?text=5',
-  ];
-
   @override
   void initState() {
     super.initState();
 
-    // 受け取った画像一覧から、ページ番号を特定
-    final int initialPage = widget.photoList.indexOf(widget.photo);
-
     _controller = PageController(
-      initialPage: initialPage,
+      // Riverpodから初期値を受け取り設定
+      initialPage: context.read(photoViewInitialIndexProvider),
     );
   }
 
@@ -53,18 +32,34 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
         ),
         body: Stack(
           children: [
-            //image List
-            PageView(
-              controller: _controller,
-              onPageChanged: (int index) => {},
-              children: widget.photoList.map((Photo photo) {
-                return Image.network(
-                  photo.imageURL,
-                  fit: BoxFit.cover,
-                );
-              }).toList(),
-            ),
+            Consumer(builder: (context, watch, child) {
+              final asyncPhotoList = watch(photoListProvider);
 
+              return asyncPhotoList.when(
+                data: (photoList) {
+                  return PageView(
+                    controller: _controller,
+                    onPageChanged: (int index) => {},
+                    children: photoList.map((Photo photo) {
+                      return Image.network(
+                        photo.imageURL,
+                        fit: BoxFit.cover,
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
+                error: (e, stackTrace) {
+                  return Center(
+                    child: Text(e.toString()),
+                  );
+                },
+              );
+            }),
             //Icon ボタンを画像の手前に重ねる
             Align(
                 alignment: Alignment.bottomCenter,
@@ -88,19 +83,35 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
                       children: [
                         //共有ボタン
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () => {},
                           color: Colors.white,
-                          icon: const Icon(Icons.share),
+                          icon: Icon(Icons.share),
                         ),
-                        //delete ボタン
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () => _onTapDelete(),
                           color: Colors.white,
-                          icon: const Icon(Icons.delete),
+                          icon: Icon(Icons.delete),
                         ),
                       ],
                     )))
           ],
         ));
+  }
+
+  Future<void> _onTapDelete() async {
+    final photoRepository = context.read(photoRepositoryProvider);
+    final photoList = context.read(photoListProvider).data!.value;
+    final photo = photoList[_controller.page!.toInt()];
+
+    if (photoList.length == 1) {
+      Navigator.of(context).pop();
+    } else if (photoList.last == photo) {
+      await _controller.previousPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+
+    await photoRepository!.deletePhoto(photo);
   }
 }
