@@ -273,7 +273,7 @@ class PhotoGridView extends StatelessWidget {
                       ? Icons.favorite
                       : Icons.favorite_border,
                 ),
-                color: Colors.white,
+                color: Colors.pink[400],
               ),
             ),
           ],

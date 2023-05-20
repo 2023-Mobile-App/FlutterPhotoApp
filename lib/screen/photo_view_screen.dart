@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 import 'package:tutorial_samplea_application/domain/photo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tutorial_samplea_application/screen/providers.dart';
@@ -83,13 +84,13 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
                       children: [
                         //共有ボタン
                         IconButton(
-                          onPressed: () => {},
-                          color: Colors.white,
+                          onPressed: () => _onTapShare(),
+                          color: Colors.blue[100],
                           icon: Icon(Icons.share),
                         ),
                         IconButton(
                           onPressed: () => _onTapDelete(),
-                          color: Colors.white,
+                          color: Colors.black26,
                           icon: Icon(Icons.delete),
                         ),
                       ],
@@ -113,5 +114,13 @@ class _PhotoViewScreenState extends State<PhotoViewScreen> {
     }
 
     await photoRepository!.deletePhoto(photo);
+  }
+
+  Future<void> _onTapShare() async {
+    final photoList = context.read(photoListProvider).data!.value;
+    final photo = photoList[_controller.page!.toInt()];
+
+    // 画像URLを共有
+    await Share.share(photo.imageURL);
   }
 }
