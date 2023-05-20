@@ -26,3 +26,9 @@ final photoListIndexProvider = StateProvider.autoDispose((ref) {
 });
 
 final photoViewInitialIndexProvider = ScopedProvider<int>(null);
+
+final favoritePhotoListProvider = Provider.autoDispose((ref) {
+  return ref.watch(photoListProvider).whenData((List<Photo> data) {
+    return data.where((photo) => photo.isFavorite).toList();
+  });
+});

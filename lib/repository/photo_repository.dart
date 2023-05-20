@@ -75,4 +75,11 @@ class PhotoRepository {
           : Timestamp.fromDate(photo.createdAt!)
     };
   }
+
+  Future<void> updatePhoto(Photo photo) async {
+    await FirebaseFirestore.instance
+        .collection('users/${user.uid}/photos')
+        .doc(photo.id)
+        .update(_photoToMap(photo));
+  }
 }
