@@ -16,9 +16,9 @@ class _SignInScreenState extends State<SignInScreen> {
   // Form の key を指定する場合は、<FormState> として、 GlobalKey<FormState> を指定する
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // メールアドレス用のTextEditingController
-  late TextEditingController _emailController = TextEditingController();
+  late TextEditingController _emailController;
   // パスワード用のTextEditingController
-  late TextEditingController _passwordController = TextEditingController();
+  late TextEditingController _passwordController;
 
   @override
   void initState() {
@@ -69,14 +69,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
 
                       TextFormField(
                         // TextEditingControllerを設定
                         controller: _passwordController,
                         decoration: const InputDecoration(labelText: "パスワード"),
                         keyboardType: TextInputType.visiblePassword,
-                        obscureText: true,
+                        // visiblePassword: true,
                         validator: (String? value) {
                           if (value?.isEmpty == true) {
                             ScaffoldMessenger.of(context)
@@ -180,10 +180,18 @@ class _SignInScreenState extends State<SignInScreen> {
       //   Authenticationを使った複雑な処理はライブラリがやってくれる
       final String email = _emailController.text;
       final String password = _passwordController.text;
+      logger.d(email, password);
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      logger.d("ユーザー登録が完了しました");
+
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('ユーザー登録が完了しました'),
+        backgroundColor: Colors.red,
+      ));
 
       //画像一覧画面に遷移する
       Navigator.of(context).pushReplacement(
@@ -204,3 +212,6 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 }
+
+// kai48586@gmail.com
+// kai0630
