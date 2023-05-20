@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:tutorial_samplea_application/domain/photo.dart';
+import 'package:tutorial_samplea_application/screen/sign_in_screen.dart';
 
 // リポジトリ
 class PhotoRepository {
@@ -31,6 +32,7 @@ class PhotoRepository {
 
     final String imageURL = await task.ref.getDownloadURL();
     final String imagePath = task.ref.fullPath;
+    logger.d('imageURL: $imageURL', 'imagePath: $imagePath');
     final Photo photo = Photo(
       imageURL: imageURL,
       imagePath: imagePath,

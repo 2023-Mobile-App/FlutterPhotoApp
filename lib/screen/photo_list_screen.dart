@@ -200,6 +200,12 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       await repository.addPhoto(file);
     }
   }
+
+  Future<void> _onTapFav(Photo photo) async {
+    final photoRepository = context.read(photoRepositoryProvider);
+    final toggledPhoto = photo.toggleIsFavorite();
+    await photoRepository!.updatePhoto(toggledPhoto);
+  }
 }
 
 class PhotoGridView extends StatelessWidget {
