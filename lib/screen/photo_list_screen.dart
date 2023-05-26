@@ -79,7 +79,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
           //「お気に入り登録した画像」を表示する部分
           Consumer(builder: (context, watch, child) {
             // 画像データ一覧を受け取る
-            final asyncPhotoList = watch(photoListProvider);
+            final asyncPhotoList = watch(favoritePhotoListProvider);
             return asyncPhotoList.when(
               data: (List<Photo> photoList) {
                 return PhotoGridView(
@@ -269,6 +269,7 @@ class PhotoGridView extends StatelessWidget {
                 onPressed: () => onTapFav(photo),
                 icon: Icon(
                   // お気に入り登録状況に応じてアイコンを切り替え
+                  color: Colors.pink[200],
                   photo.isFavorite == true
                       ? Icons.favorite
                       : Icons.favorite_border,
