@@ -27,8 +27,11 @@ final photoListIndexProvider = StateProvider.autoDispose((ref) {
 
 final photoViewInitialIndexProvider = ScopedProvider<int>(null);
 
+// photoListProviderのデータを元に、お気に入り登録されたデータのみ受け渡せるようにする
 final favoritePhotoListProvider = Provider.autoDispose((ref) {
-  return ref.watch(photoListProvider).whenData((List<Photo> data) {
-    return data.where((photo) => photo.isFavorite).toList();
-  });
+  return ref.watch(photoListProvider).whenData(
+    (List<Photo> data) {
+      return data.where((photo) => photo.isFavorite == true).toList();
+    },
+  );
 });
